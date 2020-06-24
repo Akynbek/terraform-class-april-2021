@@ -3,31 +3,19 @@ resource "aws_key_pair" "deployer" {
   public_key = "${file("~/.ssh/id_rsa.pub")}"
 }
 resource "aws_instance" "centos" {
-  ami           = "${data.aws_ami.centos.id}"
-  key_name      = "${aws_key_pair.deployer.key_name}"
-  instance_type = "t2.medium"
-  provisioner   "remote-exec" {
-    connection {
-        host        = "${self.public_ip}"
-        type        = "ssh"
-        user        = "centos"
-        private_key = "${file("~/.ssh/id_rsa")}"
-    }
-    inline = [
-      "sudo yum install epel-release -y",
-      "sudo yum install curl -y",
-      "sudo curl  https://assets.nagios.com/downloads/nagiosxi/install.sh | sh",
-    ]
-  },
-  provisioner   "file" {
-    connection {
-        host        = "${self.public_ip}"
-        type        = "ssh"
-        user        = "centos"
-        private_key = "${file("~/.ssh/id_rsa")}"
-    }
-    source = "testfile"
-    destination = "/tmp/testfile"
+  ami               = "${data.aws_ami.centos.id}"
+  key_name          = "${aws_key_pair.deployer.key_name}"
+  vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
+  subnet_id         = "${aws_subnet.public1.id}"
+  associate_public_ip_address = true
+  source_dest_check = false
+
+  user_data = "${file("nagios.sh")}"
+  instance_type = "t3.medium"
+
+
+  tags {
+    Name = "NagiosXI"
   }
 }
 
@@ -71,6 +59,8 @@ resource "aws_security_group" "allow_tls" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  vpc_id = "${aws_vpc.main.id}"
 
   tags = {
     Name = "allow_tls"
