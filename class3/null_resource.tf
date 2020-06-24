@@ -16,7 +16,7 @@
       "sudo systemctl start httpd",
       "sudo systemctl enable httpd",
       "sudo yum install telnet -y",
-      "sudo useradd bob"
+      "sudo useradd bob",
     ]
   },
   provisioner   "file" {
