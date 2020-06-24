@@ -10,7 +10,7 @@ resource "aws_instance" "centos" {
   associate_public_ip_address = true
   source_dest_check = false
 
-  user_data = "${file("nagios.sh")}"
+  user_data = "${file("${path.module}/nagios.sh")}"
   instance_type = "t3.medium"
 
 
