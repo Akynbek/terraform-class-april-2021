@@ -1,4 +1,5 @@
 #!/bin/bash
+
 sudo setenforce 0
 sudo yum install epel-release -y
 sudo yum install curl -y

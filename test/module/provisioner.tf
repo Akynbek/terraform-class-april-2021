@@ -19,6 +19,23 @@ resource "aws_instance" "centos" {
   }
 }
 
+resource "aws_instance" "centos1" {
+  ami               = "${data.aws_ami.centos.id}"
+  key_name          = "${aws_key_pair.deployer.key_name}"
+  vpc_security_group_ids = ["${aws_security_group.allow_tls.id}"]
+  subnet_id         = "${aws_subnet.public1.id}"
+  associate_public_ip_address = true
+  source_dest_check = false
+
+  user_data = "${file("${path.module}/jenkins.sh")}"
+  instance_type = "t3.medium"
+
+
+  tags {
+    Name = "Jenkins"
+  }
+}
+
 resource "aws_security_group" "allow_tls" {
   name        = "allow_tls"
   description = "Allow TLS inbound traffic"
@@ -49,6 +66,14 @@ resource "aws_security_group" "allow_tls" {
     description = "TLS from VPC"
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+    ingress {
+    description = "TLS from VPC"
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
      cidr_blocks = ["0.0.0.0/0"]
   }
